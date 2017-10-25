@@ -1,7 +1,7 @@
 Feature: BeforeStep hook
   These scenarios validate the BeforeStep hook functionality
 
-  Scenario: BeforeStep sanity
+  Scenario: BeforeStep step argument manipulations
     Given a file named "features/a.feature" with:
       """
       Feature:
@@ -45,7 +45,7 @@ Feature: BeforeStep hook
     Then It outputs the text: firstLog first.secondLog second.thirdLog third.forthLog forth
 
 
-  Scenario: BeforeStep step argument manipulations
+  Scenario: BeforeStep sanity
     Given a file named "features/a.feature" with:
       """
       Feature:

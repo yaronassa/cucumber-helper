@@ -10,7 +10,7 @@
     "tests"
   ],
   "bugs": "http://github.com/yaronassa/cucumber-helper/issues",
-  "version": "0.0.2",
+  "version": "0.0.3",
   "author": "Yaron Assa <yaron.assa@gmail.com>",
   "main": "src/index.js",
   "engines": {

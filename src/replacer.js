@@ -74,8 +74,6 @@ class Replacer {
         /** @type {cucumber.Runtime} */ // eslint-disable-next-line consistent-this
         let runtime = this;
 
-        singleton.helperCore.registerStepWrappers(this);
-
         return singleton.helperCore.runHook('beforeFeatures', [singleton.helperCore.utils.testCasesToFeatures(runtime.testCases)])
             .then(function(){
                 singleton.helperCore.registerAndManipulateTestCase(runtime);

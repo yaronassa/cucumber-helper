@@ -23,6 +23,11 @@ I will attempt to produce an upgraded version of the helper that fixes the issue
 
 If you use this helper in your project's, be aware - it may break at any time. Use at your own risk. 
  
+#### Supported cucumber versions
+
+The helper was tested with the following versions (may work with others):
+
+- 3.0.6 
  
 # Helper features
 

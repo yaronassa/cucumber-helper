@@ -1,6 +1,6 @@
 Feature: Test case manipulations
   These scenarios validate the helper's ability to manipulate the test case stack before the run
-@debug
+
   Scenario: Basic same-feature order manipulation
     Given a file named "features/a.feature" with:
       """

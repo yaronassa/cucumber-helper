@@ -1,7 +1,9 @@
 #!/usr/bin/env node
 
 let Promise = require('bluebird');
-let Cli = require('../src/index').cucumber.Cli;
+
+let helperSource = (process.env.helperPath === undefined) ? 'cucumber-helper' : process.env.helperPath;
+let Cli = require(helperSource).cucumber.Cli;
 
 /**
  * Exist the process after printing out the current error

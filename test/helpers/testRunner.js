@@ -36,6 +36,7 @@ class TestRunner {
         let runProcess;
         let spawnArgs = ['../bin/runThroughHelper.js'].concat(runArgs);
 
+
         return new Promise((resolve, reject) => {
             let stdoutOutput = [];
             let stderrOutput = [];

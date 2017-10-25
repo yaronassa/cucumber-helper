@@ -75,7 +75,6 @@ class HelperCore {
      * @private
      */
     _definitionFunctionWrapper(stepFunction){
-
         return function stepWithHooks(){
             let _self = this;
             let initialArgs = arguments;
@@ -97,7 +96,9 @@ class HelperCore {
                             if (hookResult === undefined && result !== undefined && result.__helperError !== undefined) throw result.__helperError;
                             return result;
                         });
-                }).tapCatch(e => singleton.currentRun.currentTestCase.result = {result: 'failed', error_message: e.message});
+                }).tapCatch(e => {
+                    if (singleton.currentRun.currentTestCase) singleton.currentRun.currentTestCase.result = {result: false, error_message: e.message};
+                });
         };
 
     }
