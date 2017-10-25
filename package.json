@@ -1,0 +1,43 @@
+{
+  "name": "cucumber-helper",
+  "description": "Helper tinkering and manipulating cucumberJS flow and behaviour",
+  "keywords": [
+    "testing",
+    "bdd",
+    "cucumber",
+    "helper",
+    "gherkin",
+    "tests"
+  ],
+  "bugs": "http://github.com/yassa/cucumber-helper/issues",
+  "version": "0.0.1",
+  "author": "Yaron Assa <yaron@yassa.co.il>",
+  "main": "src/index.js",
+  "engines": {
+    "node": ">=0.10"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git://github.com/yassa/cucumber-helper.git"
+  },
+  "dependencies": {
+    "bluebird": "latest",
+    "clone-deep": "^1.0.0",
+    "cucumber": "^3.0.6"
+  },
+  "devDependencies": {
+    "jsdoc-to-markdown": "^3.0.0",
+    "figures": "latest",
+    "fs-extra": "^4.0.2",
+    "string-argv": "latest",
+    "eslint": "latest"
+  },
+  "scripts": {
+    "test": "node ./node_modules/.bin/cucumberjs -r ./test/features ./test/features",
+    "lint": "./node_modules/eslint/bin/eslint.js ./"
+  },
+  "bin": {
+    "cucumber-helper": "./bin/runThroughHelper.js"
+  },
+  "license": "MIT"
+}
