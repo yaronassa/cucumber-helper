@@ -27,3 +27,4 @@ typings/
 .idea/
 temp/
 *.iml
+sandbox.js
