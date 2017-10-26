@@ -22,8 +22,6 @@ Feature: BeforeFeatures hook
         Scenario: third
           Then Log third
 
-        Scenario: forth
-          Then Log forth
       """
     And a file named "features/step_definitions/my_steps.js" with:
       """
@@ -37,8 +35,8 @@ Feature: BeforeFeatures hook
     And a file named "features/support/hook.js" with:
       """
       let helper = require(process.env.helperPath + '/index.js');
-      helper.setHook('beforeFeatures', function(){console.log('before.'); return Promise.resolve();});
+      helper.setHook('beforeFeatures', function(features){console.log(features.length);});
       """
     When I run cucumber
     Then It passes
-    Then It outputs the text: before.first.second.third.forth
+    Then It outputs the text: 2first.second.third.

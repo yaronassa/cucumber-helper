@@ -49,7 +49,7 @@ class Replacer {
 
     /**
      * Replacer for cucumber.Cli.run
-     * This replacement facilitates beforeFeatures and afterFeatures hook
+     * This replacement facilitates afterFeatures hook
      * @private
      */
     _Cli_run(){
@@ -65,7 +65,7 @@ class Replacer {
 
     /**
      * Replacer for cucumber.Runtime.start
-     * This replacement facilitates test case order manipulations
+     * This replacement facilitates test case order manipulations and beforeFeatures hook
      * @this {cucumber.Runtime}
      * @returns {Promise}
      * @private
@@ -74,9 +74,9 @@ class Replacer {
         /** @type {cucumber.Runtime} */ // eslint-disable-next-line consistent-this
         let runtime = this;
 
-        return singleton.helperCore.runHook('beforeFeatures', [singleton.helperCore.utils.testCasesToFeatures(runtime.testCases)])
+        singleton.helperCore.registerAndManipulateTestCase(runtime);
+        return singleton.helperCore.runHook('beforeFeatures', [singleton.helperCore.currentRun.features])
             .then(function(){
-                singleton.helperCore.registerAndManipulateTestCase(runtime);
                 return singleton.originalMethods.Runtime.start.call(runtime, ...arguments);
             });
     }
@@ -84,7 +84,7 @@ class Replacer {
     /**
      * Replacer for cucumber.Runtime.runTestCase
      * This replacement facilitates the beforeScenario hook
-     * @param {TestCase} tCase The cucumber pickle test case
+     * @param {HelperTestCase} tCase The cucumber pickle test case
      * @this {cucumber.Runtime}
      * @returns {Promise}
      * @private
@@ -97,8 +97,7 @@ class Replacer {
                 singleton.helperCore.setCurrentTestCase(tCase);
                 return singleton.helperCore.runHook('beforeScenario', [tCase])
                     .then(() => singleton.originalMethods.Runtime.runTestCase.call(runtime, tCase))
-                    .then(() => singleton.helperCore.runHook('afterScenario', [tCase]))
-                    .then(() => singleton.helperCore.runAfterFeatureIfNeeded());
+                    .then(() => singleton.helperCore.endTestCase(tCase));
             });
     }
 

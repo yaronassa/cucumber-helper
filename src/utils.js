@@ -19,33 +19,57 @@ class Utils {
     }
 
     /**
-     * Transforms an array of test cases to feature-grouped objects
-     * @param {TestCase[]} tCases
-     * @returns {Feature[]} The reversed engineered feature objects
+     * Reverse engineers a feature skeleton
+     * @param {string} uri The feature's URI
+     * @param {number} [uriIndex=0] The uriIndex for this feature URI
+     * @returns {HelperFeature} The feature skeleton (without the scenarios)
+     * @private
      */
-    testCasesToFeatures(tCases){
-        let features = tCases.reduce((acc, tCase) => {
-            if (acc[tCase.uri] === undefined) acc[tCase.uri] = {scenarios: [], uri: tCase.uri, fileName: tCase.uri.substr(tCase.uri.lastIndexOf('/')+1)};
-            acc[tCase.uri].scenarios.push(tCase);
-            return acc;
-        }, {});
-
-        return features;
+    _buildFeatureSkeleton(uri, uriIndex=0){
+        return {
+            testCases: [],
+            uri,
+            fileName: uri.substr(uri.lastIndexOf('/')+1),
+            uriIndex,
+            sameAs(feature){
+                return (this.uri === feature.uri && this.uriIndex === feature.uriIndex);
+            }
+        };
+        //TODO: read file and procees name, text, tags, etc.
     }
 
-    /**
-     * Gets a consecutive feature from this test case onward
-     * @param {TestCase[]} tCases The test cases to run through
-     * @param {TestCase} startingTestCase The starting test case
-     * @returns {Feature} The reconstructed test case
-     */
-    getFeatureFromStartingTCase(tCases, startingTestCase){
-        let startIndex = tCases.findIndex(tCase => (tCase.uri === startingTestCase.uri && tCase.pickle.locations[0].line === startingTestCase.pickle.locations[0].line));
-        let matchingCases = tCases.slice(startIndex);
-        let endIndex = matchingCases.findIndex(tCase => tCase.uri !== startingTestCase.uri);
-        if (endIndex >= 0) matchingCases = matchingCases.slice(0, endIndex);
 
-        return singleton.testCasesToFeatures(matchingCases)[startingTestCase.uri];
+    /**
+     * Transforms an array of test cases to feature-grouped objects
+     * @param {HelperTestCase[]} tCases The test case to transform to a feature array
+     * @returns {HelperFeature[]} The reversed engineered feature objects
+     */
+    testCasesToFeatures(tCases){
+        let lastURI;
+        let features = tCases.reduce((acc, tCase) => {
+            /** @type {HelperFeature[]} */
+            let matchingFeatures = acc.filter(feature => feature.uri === tCase.uri);
+            let scenarioFeature = matchingFeatures[matchingFeatures.length-1];
+
+            if (scenarioFeature === undefined) {
+                scenarioFeature = singleton._buildFeatureSkeleton(tCase.uri);
+                acc.push(scenarioFeature);
+            } else {
+                if (lastURI !== scenarioFeature.uri) {
+                    scenarioFeature = singleton._buildFeatureSkeleton(tCase.uri, scenarioFeature.uriIndex);
+                    acc.push(scenarioFeature);
+                }
+            }
+
+            lastURI = scenarioFeature.uri;
+            tCase.feature = scenarioFeature;
+            tCase.featureIndex = scenarioFeature.testCases.length;
+            scenarioFeature.testCases.push(tCase);
+            tCase.sameAs = function(compareTo){return (tCase.uri === compareTo.uri && tCase.featureIndex === compareTo.featureIndex);};
+            return acc;
+        }, []);
+
+        return features;
     }
 
 }

@@ -29,42 +29,54 @@ class HelperCore {
 
         /**
          * The current run state
-         * @type {{testCases: TestCase[], currentFeature: Feature, currentTestCase: TestCase, currentStep: Step}}
+         * @type {HelperRunState}
          */
         this.currentRun = {
             testCases : [],
+            features : [],
             currentFeature: undefined,
             currentTestCase : undefined,
             currentStep : undefined
         };
+
         this._currentStepIndex = 0;
-        this._currentTCaseIndex = 0;
+        this._currentTCaseStart = undefined;
+        this._currentFeatureStart = undefined;
 
         this._registeredStepWrappers = false;
     }
 
     /**
      * Sets the current test case
-     * @param {TestCase} tCase
+     * @param {HelperTestCase} tCase
      */
     setCurrentTestCase(tCase){
         singleton.currentRun.currentTestCase = tCase;
+        singleton._currentTCaseStart = new Date();
         singleton._currentStepIndex = -1;
-        singleton._currentTCaseIndex = singleton._currentTCaseIndex + 1;
+    }
+
+    /**
+     * Processes a test case after it ended
+     * @param {HelperTestCase} tCase The test case to process
+     * @returns {Promise}
+     */
+    endTestCase(tCase){
+        tCase.duration = new Date() - singleton._currentTCaseStart;
+        return singleton.runHook('afterScenario', [tCase])
+            .then(() => singleton.runAfterFeatureIfNeeded());
     }
 
     /**
      * Promotes the current feature (if needed)
-     * @param {TestCase} newTestCase The upcoming testCase
+     * @param {HelperTestCase} newTestCase The upcoming testCase
      * @returns {Promise}
      */
     promoteFeatureIfNeeded(newTestCase){
-        let currentURI = (singleton.currentRun.currentTestCase) ? singleton.currentRun.currentTestCase.uri : '';
-        if (currentURI === newTestCase.uri) return Promise.resolve();
-        let feature = singleton.utils.getFeatureFromStartingTCase(singleton.currentRun.testCases, newTestCase);
-        singleton.currentRun.currentFeature = feature;
-        singleton._currentTCaseIndex = -1;
-        return singleton.runHook('beforeFeature', [feature]);
+        if (singleton.currentRun.currentTestCase !== undefined && singleton.currentRun.currentTestCase.feature.sameAs(newTestCase.feature)) return Promise.resolve();
+        singleton.currentRun.currentFeature = newTestCase.feature;
+        singleton._currentFeatureStart = new Date();
+        return singleton.runHook('beforeFeature', [newTestCase.feature]);
     }
 
     /**
@@ -74,7 +86,8 @@ class HelperCore {
     runAfterFeatureIfNeeded(){
         if (singleton.currentRun.currentFeature === undefined) return Promise.resolve();
 
-        if (singleton.currentRun.currentFeature.scenarios.length === singleton._currentTCaseIndex + 1) {
+        if (singleton.currentRun.currentTestCase.featureIndex === singleton.currentRun.currentFeature.testCases.length -1) {
+            singleton.currentRun.currentFeature.duration = new Date() - singleton._currentFeatureStart;
             return singleton.runHook('afterFeature', [singleton.currentRun.currentFeature]);
         } else {
             return Promise.resolve();
@@ -110,26 +123,35 @@ class HelperCore {
         return function stepWithHooks(){
             let _self = this;
             let initialArgs = arguments;
+            let finalResult;
 
             singleton._promoteCurrentStep();
 
-            let currentStep = require('clone-deep')(singleton.currentRun.currentStep); //We're already in the step, changing the object will do nothing
+            let currentStep = singleton.currentRun.currentStep || {};
+            let stepStart = new Date();
 
             return singleton.runHook('beforeStep', [currentStep, Array.from(initialArgs)])
                 .then(function(processedArgs){
                     let actualArgs = (processedArgs === undefined) ? initialArgs : processedArgs;
 
                     return singleton._runUnknownFunction(stepFunction, _self, actualArgs)
-                        .catch(e => Promise.resolve({__helperError: e}));
-
-                }).then(result => {
-                    return singleton.runHook('afterStep', [currentStep, result])
+                        .then(result => ({result: true, original_result: result}))
+                        .catch(e => Promise.resolve({result: false, error_message: e.message}));
+                }).then(helperResult => {
+                    currentStep.duration = new Date() - stepStart;
+                    return singleton.runHook('afterStep', [currentStep, helperResult])
                         .then(hookResult => {
-                            if (hookResult === undefined && result !== undefined && result.__helperError !== undefined) throw result.__helperError;
-                            return result;
+                            finalResult = (hookResult && hookResult.result !== undefined) ? hookResult : helperResult;
+                            if (finalResult.result === false) {
+                                let error = new Error(finalResult.error_message || helperResult.error_message || 'Unspecified error');
+                                throw error;
+                            }
+                            return finalResult;
                         });
-                }).tapCatch(e => {
-                    if (singleton.currentRun.currentTestCase) singleton.currentRun.currentTestCase.result = {result: false, error_message: e.message};
+                }).finally(() => {
+                    if (singleton.currentRun.currentStep) singleton.currentRun.currentStep.result = finalResult;
+                    if (singleton.currentRun.currentTestCase) singleton.currentRun.currentTestCase.result = finalResult;
+                    if (singleton.currentRun.currentFeature) singleton.currentRun.currentFeature.result = finalResult;
                 });
         };
 
@@ -171,16 +193,20 @@ class HelperCore {
     /**
      * Manipulates the original cucumber testCases and performs user manipulations on them
      * @param {cucumber.Runtime} runtime The cucumber Runtime instance
-     * @returns {TestCase[]} The manipulated test cases
+     * @returns {HelperTestCase[]} The manipulated test cases
      */
     registerAndManipulateTestCase(runtime){
         let originalTestCases = runtime.testCases;
         singleton.currentRun.testCases = singleton.userFunctions.testCasesManipulator(originalTestCases);
         if (!Array.isArray(singleton.currentRun.testCases)) throw new Error('User\'s testCases manipulator did not return an Array');
+        singleton.currentRun.testCases.forEach(tCase => tCase.pickle.steps.forEach(step => step.testCase = tCase));
+
+        singleton.currentRun.features = singleton.utils.testCasesToFeatures(singleton.currentRun.testCases);
 
         Object.defineProperty(runtime, 'testCases', {get(){return singleton.helper.currentRun.testCases;}});
         return singleton.currentRun.testCases;
     }
+
 
     /**
      * Sets the user hook function
@@ -213,6 +239,8 @@ class HelperCore {
             case 'beforestep':
                 singleton.userFunctions.hooks.beforeStep = userFunction;
                 break;
+            case 'stepresult':
+                throw new Error('StepResult hook was replaced by AfterStep');
             case 'afterstep':
                 singleton.userFunctions.hooks.afterStep = userFunction;
                 break;
@@ -222,9 +250,13 @@ class HelperCore {
                     After(userFunction);
                 });
                 break;
+            case 'scenarioresult':
+                throw new Error('ScenarioResult hook was replaced by AfterScenario');
             case 'afterscenario':
                 singleton.userFunctions.hooks.afterScenario = userFunction;
                 break;
+            case 'featureresult':
+                throw new Error('FeatureResult hook was replaced by AfterFeature');
             case 'afterfeature':
                 singleton.userFunctions.hooks.afterFeature = userFunction;
                 break;
@@ -233,7 +265,6 @@ class HelperCore {
                 singleton.replacer.originalMethods.mainObject.defineSupportCode(function({AfterAll}){
                     AfterAll(userFunction);
                 });
-
                 break;
             case 'afterfeatures':
                 singleton.userFunctions.hooks.afterFeatures = userFunction;

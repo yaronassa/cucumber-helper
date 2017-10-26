@@ -1,7 +1,6 @@
 Feature: BeforeAll hook
   These scenarios validate the BeforeAll hook functionality
 
-
   Scenario: Helper BeforeAll sanity
     Given a file named "features/a.feature" with:
       """

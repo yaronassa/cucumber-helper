@@ -63,7 +63,7 @@ Feature: AfterStep hook
       """
       let helper = require(process.env.helperPath + '/index.js');
       helper.setHook('afterStep', function(step, result){
-        return 'Passed';
+        return {result: true}
       });
       """
     When I run cucumber
@@ -90,7 +90,7 @@ Feature: AfterStep hook
       """
       let helper = require(process.env.helperPath + '/index.js');
       helper.setHook('afterStep', function(){
-        throw new Error('Changed Error');
+        return {result: false, error_message: 'Changed Error'};
       });
       """
     When I run cucumber
@@ -119,8 +119,8 @@ Feature: AfterStep hook
       helper.setHook('beforeStep', function(step){
         step._myMessage = 'Something';
       });
-      helper.setHook('afterStep', function(step){
-        throw new Error(step._myMessage);
+      helper.setHook('afterStep', function(step, result){
+        return {result: false, error_message: step._myMessage};
       });
       """
     When I run cucumber

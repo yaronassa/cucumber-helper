@@ -3,6 +3,8 @@
 This project isn't affiliated in any manner with the official [cucumber](https://cucumber.io/) / [cucumberJS](https://github.com/cucumber/cucumber-js) projects, nor does it have their explicit or implicit support.
 In fact, this project's philosophy directly opposes that of the official cucumber implementations.
 
+**PLEASE NOTE: Until version 0.1, this project is in an alpha stage, with possible api and behaviour changes.**
+
 ## About this project
 
 Cucumber, and specifically its cucumberJS implementation are wonderful tools for test automation and collaborative work.
@@ -108,8 +110,8 @@ The Available hooks are:
 #### BeforeFeatures
 
 - Executed right before the cucumber Runtime starts the actual run.
-- Receive an immutable array of features this run will include (feature = all scenarios under a given URI).
-- The features are pre-test-case-mutation (notice these may be different and unrelated to features later produced for BeforeFeature and AfterFeature hook).
+- Receives the array of to-be-executed features (Please note that a single feature might be split into several helper-features due to test case manipulations)
+- Please note - changing the test case order within a feature object changes nothing in the actual run.
 
 **Example**
 ```javascript
@@ -117,10 +119,10 @@ The Available hooks are:
   helper.setHook('beforeFeatures',
       /**
       * A function to act according to the original feature stack
-      * @param {Feature[]} features The run features (prior to setTestCaseManipulator effect)
+      * @param {HelperFeature[]} features The run features
       */
       function(features){
-        console.log(features.length)
+        console.log(`Will execute ${features.length} logical features`);
     });
 ```
 
@@ -133,9 +135,10 @@ For more details see [cucumberJS BeforeAll](https://github.com/cucumber/cucumber
 
 #### BeforeFeature
 
-- Executes before a scenario with a different URI than the current one.
+- Executes before a test case with a different URI than the current one.
 - Note, this means you man get multiple hook activations for the same feature file, if you manipulate the scenario order.
-- The hook will receive a reconstructed feature, with all the upcoming scenarios (i.e. all scenarios from here, until one with a different URI will occur).
+- The hook will receive the upcoming feature object
+- Please note - changing the test case order within a feature object changes nothing in the actual run.
 
 **Example**
 ```javascript
@@ -143,10 +146,10 @@ For more details see [cucumberJS BeforeAll](https://github.com/cucumber/cucumber
   helper.setHook('beforeFeature',
       /**
       * A function to handle feature chcanges
-      * @param {Feature} feature The upcoming feature
+      * @param {HelperFeature} feature The upcoming feature
       */
       function(feature){
-        console.log(`Upcoming feature (${feature.fileName}) has ${feature.scenarios.length} scenarios`);
+        console.log(`Upcoming feature (${feature.fileName}) has ${feature.testCases.length} scenarios`);
     });
 ```
 
@@ -162,7 +165,7 @@ For more details see [cucumberJS BeforeAll](https://github.com/cucumber/cucumber
       /**
       * A function to manipulate the upcoming scenario
       * Note - Any changes to the tCase object will persist, the function doesn't need to return anything
-      * @param {TestCase} tCase The upcoming test case
+      * @param {HelperTestCase} tCase The upcoming test case
       */
       function(tCase){
         //Delete the last step in the scenario
@@ -184,6 +187,7 @@ For more details see [cucumberJS Before](https://github.com/cucumber/cucumber-js
 - Runs right before the step is executed
 - Allows you to manipulate the step parameters before they are passed to the step function
 - Allows you to plant information that can be used by the AfterStep hook.
+- Please note - changing the step object fields will not affect the cucumber runtime (i.e. change it's text)
 
 **Example**
 ```javascript
@@ -191,7 +195,7 @@ For more details see [cucumberJS Before](https://github.com/cucumber/cucumber-js
   helper.setHook('beforeStep',
       /**
       * A function to manipulate the upcoming step's arguments
-      * @param {Step} step The upcoming step (immutable)
+      * @param {HelperStep} step The upcoming step (immutable)
       * @param {Array} args The upcoming step function arguments
       * @returns {Array} A modified array of function arguments
       */
@@ -205,29 +209,30 @@ For more details see [cucumberJS Before](https://github.com/cucumber/cucumber-js
     });
 ```
 
+#### StepResult
+
+- Replaced by [AfterStep](#afterstep)
+
 #### AfterStep
 
 - Runs right after a step in executed
-- Receives the step (and ant field set on it by BeforeStep), and its result / a {__helperError : Error} object in case of step failure
-- If the hook returns any value, the original error will be ignored, and the step will pass.
-- You can throw a new error to changed the fail reason
+- Receives the step (and ant field set on it by BeforeStep), and its result / a {result:Boolean, error_message : string, originalResult: object} object
+- The hook can return a similarly structured result object to override the step result. Returning undefined doesn't change the result.
 
 ```javascript
   let helper = require('cucumber-helper');
   helper.setHook('afterStep',
       /**
       * A function to manipulate the step result
-      * @param {Step} step The upcoming step (immutable)
-      * @param {Array} args The upcoming step function arguments
-      * @returns {Array} A modified array of function arguments
+      * @param {Step} step The step that was executed
+      * @param {HelperResult} result The step result
+      * @returns {HelperResult} A modified result
       */
-      function(step, args){
+      function(step, result){
         console.log(step.text);
         if (step._myInfo) console.log('Info from beforeStep: ' + step._myInfo);
-        //Append the first argument (
-        let newArgs = [].concat(args);
-        newArgs[0] = newArgs[0] + ' hook';
-        return newArgs;
+        
+        console.log('Step result: ' + result.result);
     });
 ```
 
@@ -237,6 +242,10 @@ For more details see [cucumberJS Before](https://github.com/cucumber/cucumber-js
 - Can be set either from the helper, or regularly from the cucumber defineSupportCode interface (or both, if you really want to)
 
 For more details see [cucumberJS After](https://github.com/cucumber/cucumber-js/blob/master/docs/support_files/hooks.md#hooks).
+
+#### ScenarioResult
+
+- Replaced by [AfterScenario](#afterscenario)
 
 #### AfterScenario
 
@@ -255,6 +264,10 @@ For more details see [cucumberJS After](https://github.com/cucumber/cucumber-js/
         console.log(tCase.pickle.name);
     });
 ```
+
+#### FeatureResult
+
+- Replaced by [AfterFeature](#afterfeature)
 
 #### AfterFeature
 
@@ -303,3 +316,4 @@ For more details see [cucumberJS BeforeAll](https://github.com/cucumber/cucumber
     });
 ```
 
+TODO: add stepResult, scenarioResult, featureResult

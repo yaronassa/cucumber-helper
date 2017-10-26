@@ -1,5 +1,14 @@
 # Changelog
 
+## 0.0.6 Various fixes and additions (26 Oct. 2017)
+
+- Separated vanilla pickle object from helper objects
+- Added duration, standardized helper result
+- Features are now almost-equal-objects
+- Notify user on missing V2 hooks
+- Updated tests 
+- Updated readme
+
 ## 0.0.5 Dependency fix (26 Oct. 2017)
 
 - Moved cucumber to dev-dependencies

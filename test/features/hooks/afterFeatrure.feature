@@ -1,6 +1,6 @@
 Feature: AfterFeature hook
   These scenarios validate the AfterFeature hook functionality
-@debug
+
   Scenario: AfterScenario sanity
     Given a file named "features/a.feature" with:
       """

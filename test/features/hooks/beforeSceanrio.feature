@@ -1,8 +1,6 @@
 Feature: BeforeScenario hook
   These scenarios validate the beforeScenario hook functionality
 
-
-
   Scenario: BeforeScenario sanity
     Given a file named "features/a.feature" with:
       """

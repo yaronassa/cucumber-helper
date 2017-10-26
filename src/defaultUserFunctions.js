@@ -9,17 +9,17 @@
 
 /**
  * @typedef {object} HookUserFunctions
- * @property {function(Feature[]):Promise} beforeFeatures
+ * @property {function(HelperFeature[]):Promise} beforeFeatures
  * @property {function():Promise} beforeAll
- * @property {function(Feature):Promise} beforeFeature
- * @property {function(TestCase):Promise<TestCase>} beforeScenario
+ * @property {function(HelperFeature):Promise} beforeFeature
+ * @property {function(HelperTestCase):Promise<HelperTestCase>} beforeScenario
  * @property {function():Promise} before
- * @property {function(Step, Array):Promise<Array>} beforeStep
- * @property {function(Step, object):Promise} afterStep
+ * @property {function(HelperStep, Array):Promise<Array>} beforeStep
+ * @property {function(HelperStep, HelperResult):Promise<HelperResult>} afterStep
  * @property {function():Promise} after
  * @property {function():Promise} afterAll
- * @property {function(TestCase):Promise} afterScenario
- * @property {function(Feature):Promise} afterFeature
+ * @property {function(HelperTestCase):Promise} afterScenario
+ * @property {function(HelperFeature):Promise} afterFeature
  * @property {function(boolean):Promise<boolean>} afterFeatures
  */
 
@@ -36,7 +36,7 @@ let getDefaultUserFunctions = function(){
             beforeScenario(scenario){return Promise.resolve();},
             before(){return Promise.resolve();},
             beforeStep(step, args){return Promise.resolve(args);},
-            afterStep(step, result){if (result !== undefined && result.__helperError !== undefined) return Promise.reject(result.__helperError);},
+            afterStep(step, result){return Promise.resolve(result);},
             after(){return Promise.resolve();},
             afterAll(){return Promise.resolve();},
             afterScenario(scenario){return Promise.resolve();},
