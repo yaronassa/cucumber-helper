@@ -44,6 +44,10 @@ class TestRunner {
             newEnv.helperPath = _self.helper.helperPath;
 
             runProcess = require('child_process').spawn('node', spawnArgs, {cwd : _self.tempDir, env: newEnv});
+            if (process.env.pipeOut) {
+                runProcess.stdout.pipe(process.stdout);
+                runProcess.stderr.pipe(process.stderr);
+            }
 
             runProcess.stdout.on('data', function(data){
                 let str = data.toString();

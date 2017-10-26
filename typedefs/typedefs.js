@@ -22,6 +22,7 @@
  * @property {string} pickle.language The pickle language signature
  * @property {string} pickle.name The test case name
  * @property {Step[]} pickle.steps The test case steps
+ * @property {Location[]} pickle.locations The scenario location
  * @property {Array<{name: string, location: Location}>} pickle.tags The test case compounded tags
  * @property {boolean} result.result The helper end result for this test case
  * @property {string} result.error_message The helper error message for this test case

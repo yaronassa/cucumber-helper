@@ -38,7 +38,7 @@ class Helper {
 
     /**
      * Returns information regarding the current state of the test run
-     * @returns {{testCases: TestCase[], currentTestCase: TestCase, currentStep: Step}} A clone of the current run state
+     * @returns {{testCases: TestCase[], currentFeature: Feature, currentTestCase: TestCase, currentStep: Step}} A clone of the current run state
      */
     get currentRun() {
         return require('clone-deep')(singleton.core.currentRun);

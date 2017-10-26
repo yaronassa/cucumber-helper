@@ -92,10 +92,14 @@ class Replacer {
     _Runtime_runTestCase(tCase){
         /** @type {cucumber.Runtime} */ // eslint-disable-next-line consistent-this
         let runtime = this;
-        singleton.helperCore.setCurrentTestCase(tCase);
-        return singleton.helperCore.runHook('beforeScenario', [tCase])
-            .then(() => singleton.originalMethods.Runtime.runTestCase.call(runtime, tCase))
-            .then(() => singleton.helperCore.runHook('afterScenario', [tCase]));
+        return singleton.helperCore.promoteFeatureIfNeeded(tCase)
+            .then(function(){
+                singleton.helperCore.setCurrentTestCase(tCase);
+                return singleton.helperCore.runHook('beforeScenario', [tCase])
+                    .then(() => singleton.originalMethods.Runtime.runTestCase.call(runtime, tCase))
+                    .then(() => singleton.helperCore.runHook('afterScenario', [tCase]))
+                    .then(() => singleton.helperCore.runAfterFeatureIfNeeded());
+            });
     }
 
     /**

@@ -11,6 +11,7 @@
  * @typedef {object} HookUserFunctions
  * @property {function(Feature[]):Promise} beforeFeatures
  * @property {function():Promise} beforeAll
+ * @property {function(Feature):Promise} beforeFeature
  * @property {function(TestCase):Promise<TestCase>} beforeScenario
  * @property {function():Promise} before
  * @property {function(Step, Array):Promise<Array>} beforeStep
@@ -18,6 +19,7 @@
  * @property {function():Promise} after
  * @property {function():Promise} afterAll
  * @property {function(TestCase):Promise} afterScenario
+ * @property {function(Feature):Promise} afterFeature
  * @property {function(boolean):Promise<boolean>} afterFeatures
  */
 
@@ -30,6 +32,7 @@ let getDefaultUserFunctions = function(){
         hooks : {
             beforeFeatures(features){return Promise.resolve(features);},
             beforeAll(){return Promise.resolve();},
+            beforeFeature(feature){return Promise.resolve();},
             beforeScenario(scenario){return Promise.resolve();},
             before(){return Promise.resolve();},
             beforeStep(step, args){return Promise.resolve(args);},
@@ -37,6 +40,7 @@ let getDefaultUserFunctions = function(){
             after(){return Promise.resolve();},
             afterAll(){return Promise.resolve();},
             afterScenario(scenario){return Promise.resolve();},
+            afterFeature(feature){return Promise.resolve();},
             afterFeatures(res){return Promise.resolve(res);}
         }
     };

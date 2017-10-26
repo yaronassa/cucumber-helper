@@ -1,6 +1,7 @@
 {
   "name": "cucumber-helper",
   "description": "Helper tinkering and manipulating cucumberJS flow and behaviour",
+  "version": "0.0.4",
   "keywords": [
     "testing",
     "bdd",
@@ -10,7 +11,6 @@
     "tests"
   ],
   "bugs": "http://github.com/yaronassa/cucumber-helper/issues",
-  "version": "0.0.3",
   "author": "Yaron Assa <yaron.assa@gmail.com>",
   "main": "src/index.js",
   "engines": {
@@ -34,7 +34,8 @@
   },
   "scripts": {
     "test": "node ./node_modules/.bin/cucumberjs -r ./test/features ./test/features",
-    "lint": "./node_modules/eslint/bin/eslint.js ./"
+    "lint": "./node_modules/eslint/bin/eslint.js ./",
+    "typedefs" : "./node_modules/.bin/jsdoc2md ./typedefs/typedefs.js > typedefs.md"
   },
   "bin": {
     "cucumber-helper": "./bin/runThroughHelper.js"

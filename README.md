@@ -90,7 +90,7 @@ Where `manipulatedTCases` is a new array of test cases.
 
 ## Run information
 
-In any time, you can invoke `helper.currentRun` and receive the current test case, and step.
+In any time, you can invoke `helper.currentRun` and receive the current test case, feature and step.
 Please note, that the returned information is disconnected from cucumber (i.e. changing it will not affect the actual run).
 Hooks and other functions may receive actionable objects that changing them can and will affect the run.
 
@@ -109,7 +109,7 @@ The Available hooks are:
 
 - Executed right before the cucumber Runtime starts the actual run.
 - Receive an immutable array of features this run will include (feature = all scenarios under a given URI).
-- The features are pre-test-case-mutation.
+- The features are pre-test-case-mutation (notice these may be different and unrelated to features later produced for BeforeFeature and AfterFeature hook).
 
 **Example**
 ```javascript
@@ -130,6 +130,25 @@ The Available hooks are:
 - Can be set either from the helper, or regularly from the cucumber defineSupportCode interface (or both, if you really want to)
 
 For more details see [cucumberJS BeforeAll](https://github.com/cucumber/cucumber-js/blob/master/docs/support_files/hooks.md#beforeall--afterall).
+
+#### BeforeFeature
+
+- Executes before a scenario with a different URI than the current one.
+- Note, this means you man get multiple hook activations for the same feature file, if you manipulate the scenario order.
+- The hook will receive a reconstructed feature, with all the upcoming scenarios (i.e. all scenarios from here, until one with a different URI will occur).
+
+**Example**
+```javascript
+  let helper = require('cucumber-helper');
+  helper.setHook('beforeFeature',
+      /**
+      * A function to handle feature chcanges
+      * @param {Feature} feature The upcoming feature
+      */
+      function(feature){
+        console.log(`Upcoming feature (${feature.fileName}) has ${feature.scenarios.length} scenarios`);
+    });
+```
 
 #### BeforeScenario
 
@@ -236,6 +255,26 @@ For more details see [cucumberJS After](https://github.com/cucumber/cucumber-js/
         console.log(tCase.pickle.name);
     });
 ```
+
+#### AfterFeature
+
+- Executes after the a last scenario of a given URI sequence has finished its AfterScenario hook
+- Note that as in BeforeFeature, other scenarios from the original file may still occur in a different feature-sequence.
+- Gets the Feature object that BeforeFeature manipulated
+
+**Example**
+```javascript
+  let helper = require('cucumber-helper');
+  helper.setHook('afterFeature',
+      /**
+      * A function to act on the finished scenario
+      * @param {Feature} feature The finished feature
+      */
+      function(feature){
+        console.log(`Feature ${feature.fileName} has ended`);
+    });
+```
+
 
 #### AfterAll
 

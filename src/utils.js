@@ -33,6 +33,21 @@ class Utils {
         return features;
     }
 
+    /**
+     * Gets a consecutive feature from this test case onward
+     * @param {TestCase[]} tCases The test cases to run through
+     * @param {TestCase} startingTestCase The starting test case
+     * @returns {Feature} The reconstructed test case
+     */
+    getFeatureFromStartingTCase(tCases, startingTestCase){
+        let startIndex = tCases.findIndex(tCase => (tCase.uri === startingTestCase.uri && tCase.pickle.locations[0].line === startingTestCase.pickle.locations[0].line));
+        let matchingCases = tCases.slice(startIndex);
+        let endIndex = matchingCases.findIndex(tCase => tCase.uri !== startingTestCase.uri);
+        if (endIndex >= 0) matchingCases = matchingCases.slice(0, endIndex);
+
+        return singleton.testCasesToFeatures(matchingCases)[startingTestCase.uri];
+    }
+
 }
 
 module.exports = Utils;

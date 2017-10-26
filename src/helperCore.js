@@ -29,14 +29,16 @@ class HelperCore {
 
         /**
          * The current run state
-         * @type {{testCases: TestCase[], currentTestCase: TestCase, currentStep: Step}}
+         * @type {{testCases: TestCase[], currentFeature: Feature, currentTestCase: TestCase, currentStep: Step}}
          */
         this.currentRun = {
             testCases : [],
+            currentFeature: undefined,
             currentTestCase : undefined,
             currentStep : undefined
         };
         this._currentStepIndex = 0;
+        this._currentTCaseIndex = 0;
 
         this._registeredStepWrappers = false;
     }
@@ -48,6 +50,36 @@ class HelperCore {
     setCurrentTestCase(tCase){
         singleton.currentRun.currentTestCase = tCase;
         singleton._currentStepIndex = -1;
+        singleton._currentTCaseIndex = singleton._currentTCaseIndex + 1;
+    }
+
+    /**
+     * Promotes the current feature (if needed)
+     * @param {TestCase} newTestCase The upcoming testCase
+     * @returns {Promise}
+     */
+    promoteFeatureIfNeeded(newTestCase){
+        let currentURI = (singleton.currentRun.currentTestCase) ? singleton.currentRun.currentTestCase.uri : '';
+        if (currentURI === newTestCase.uri) return Promise.resolve();
+        let feature = singleton.utils.getFeatureFromStartingTCase(singleton.currentRun.testCases, newTestCase);
+        singleton.currentRun.currentFeature = feature;
+        singleton._currentTCaseIndex = -1;
+        return singleton.runHook('beforeFeature', [feature]);
+    }
+
+    /**
+     * Runs the AfterFeature hook, if needed
+     * @returns {Promise}
+     */
+    runAfterFeatureIfNeeded(){
+        if (singleton.currentRun.currentFeature === undefined) return Promise.resolve();
+
+        if (singleton.currentRun.currentFeature.scenarios.length === singleton._currentTCaseIndex + 1) {
+            return singleton.runHook('afterFeature', [singleton.currentRun.currentFeature]);
+        } else {
+            return Promise.resolve();
+        }
+
     }
 
     /**
@@ -166,6 +198,9 @@ class HelperCore {
                     BeforeAll(userFunction);
                 });
                 break;
+            case 'beforefeature':
+                singleton.userFunctions.hooks.beforeFeature = userFunction;
+                break;
             case 'beforescenario':
                 singleton.userFunctions.hooks.beforeScenario = userFunction;
                 break;
@@ -189,6 +224,9 @@ class HelperCore {
                 break;
             case 'afterscenario':
                 singleton.userFunctions.hooks.afterScenario = userFunction;
+                break;
+            case 'afterfeature':
+                singleton.userFunctions.hooks.afterFeature = userFunction;
                 break;
             case 'afterall':
                 singleton.userFunctions.hooks.afterAll = userFunction;

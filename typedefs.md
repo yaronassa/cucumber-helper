@@ -56,6 +56,7 @@ Represents a cucumber pickle (scenario)
 | pickle.language | <code>string</code> | The pickle language signature |
 | pickle.name | <code>string</code> | The test case name |
 | pickle.steps | [<code>Array.&lt;Step&gt;</code>](#Step) | The test case steps |
+| pickle.locations | [<code>Array.&lt;Location&gt;</code>](#Location) | The scenario location |
 | pickle.tags | <code>Array.&lt;{name: string, location: Location}&gt;</code> | The test case compounded tags |
 | result.result | <code>boolean</code> | The helper end result for this test case |
 | result.error_message | <code>string</code> | The helper error message for this test case |

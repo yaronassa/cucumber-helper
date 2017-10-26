@@ -1,10 +1,9 @@
-Feature: BeforeFeatures hook
-  These scenarios validate the beforeFeatures hook functionality
+Feature: BeforeFeature hook
+  These scenarios validate the beforeFeature hook functionality
 
+  #TODO: test beforeFeature after scenario reordering
 
-  #TODO: add beforeFeatures in-features-object-print
-
-  Scenario: BeforeFeatures sanity
+  Scenario: BeforeFeature sanity
     Given a file named "features/a.feature" with:
       """
       Feature:
@@ -37,8 +36,8 @@ Feature: BeforeFeatures hook
     And a file named "features/support/hook.js" with:
       """
       let helper = require(process.env.helperPath + '/index.js');
-      helper.setHook('beforeFeatures', function(){console.log('before.'); return Promise.resolve();});
+      helper.setHook('beforeFeature', function(feature){console.log('before ' + feature.fileName + '.');});
       """
     When I run cucumber
     Then It passes
-    Then It outputs the text: before.first.second.third.forth
+    Then It outputs the text: before a.feature.first.second.before b.feature.third.forth.
