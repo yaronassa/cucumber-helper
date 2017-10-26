@@ -1,7 +1,7 @@
 {
   "name": "cucumber-helper",
   "description": "Helper tinkering and manipulating cucumberJS flow and behaviour",
-  "version": "0.0.4",
+  "version": "0.0.5",
   "keywords": [
     "testing",
     "bdd",
@@ -22,15 +22,15 @@
   },
   "dependencies": {
     "bluebird": "latest",
-    "clone-deep": "^1.0.0",
-    "cucumber": "^3.0.6"
+    "clone-deep": "^1.0.0"
   },
   "devDependencies": {
     "jsdoc-to-markdown": "^3.0.0",
     "figures": "latest",
     "fs-extra": "^4.0.2",
     "string-argv": "latest",
-    "eslint": "latest"
+    "eslint": "latest",
+    "cucumber": "^3.0.6"
   },
   "scripts": {
     "test": "node ./node_modules/.bin/cucumberjs -r ./test/features ./test/features",

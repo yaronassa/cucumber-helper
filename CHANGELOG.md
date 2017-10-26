@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.0.5 Dependency fix (26 Oct. 2017)
+
+- Moved cucumber to dev-dependencies
+
 ## 0.0.4 Feature hooks, some fixes (26 Oct. 2017)
 
 - Added BeforeFeature/AfterFeature hooks
